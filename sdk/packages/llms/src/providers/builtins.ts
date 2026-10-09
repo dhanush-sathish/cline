@@ -56,6 +56,7 @@ import {
 import { BEDROCK_ROUTING_METADATA } from "./routing/bedrock-cache-point";
 import { GLM_THINKING_ROUTING_METADATA } from "./routing/glm-thinking";
 import { MINIMAX_THINKING_ROUTING_METADATA } from "./routing/minimax-thinking";
+import { NVIDIA_REASONING_ROUTING_METADATA } from "./routing/nvidia-reasoning-budget";
 
 export const DEFAULT_INTERNAL_OCA_BASE_URL =
 	"https://code-internal.aiservice.us-chicago-1.oci.oraclecloud.com/20250206/app/litellm";
@@ -1300,6 +1301,10 @@ const BUILTIN_SPEC_OVERRIDES: BuiltinSpecOverride[] = [
 			international: "https://api.minimax.io/anthropic/v1",
 		},
 		metadata: MINIMAX_THINKING_ROUTING_METADATA,
+	},
+	{
+		id: "nvidia",
+		metadata: NVIDIA_REASONING_ROUTING_METADATA,
 	},
 	{
 		id: "opencode",

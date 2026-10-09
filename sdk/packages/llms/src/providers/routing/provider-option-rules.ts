@@ -19,6 +19,7 @@ import {
 	buildRoutedGlmReasoningProviderOptionsPatch,
 } from "./glm-thinking";
 import { buildMiniMaxThinkingProviderOptionsPatch } from "./minimax-thinking";
+import { buildNvidiaReasoningBudgetProviderOptionsPatch } from "./nvidia-reasoning-budget";
 import type {
 	MatchedProviderOptionRule,
 	ProviderOptionBuildInput,
@@ -514,6 +515,24 @@ const miniMaxThinkingRule: ProviderOptionRule = {
 		),
 };
 
+const nvidiaReasoningBudgetRule: ProviderOptionRule = {
+	id: "provider.routing.nvidia-reasoning-budget",
+	phase: "model-overlay",
+	description: "NVIDIA NIM bounds reasoning with a top-level reasoning_budget.",
+	applies: (input) =>
+		typeof input.request.reasoning?.budgetTokens === "number" &&
+		providerReasoningRouteMatches(
+			"nvidia-reasoning-budget",
+			input.request,
+			input.context,
+		),
+	build: (input) =>
+		buildNvidiaReasoningBudgetProviderOptionsPatch(
+			input.request,
+			input.providerOptionsKey,
+		),
+};
+
 const routedGlmReasoningRule: ProviderOptionRule = {
 	id: "family.glm.routed-reasoning",
 	phase: "model-overlay",
@@ -561,6 +580,7 @@ export const PROVIDER_OPTION_RULES: ReadonlyArray<ProviderOptionRule> = [
 	nonGlmProviderRoutingSuppressionRule,
 	nativeZaiGlmThinkingRule,
 	miniMaxThinkingRule,
+	nvidiaReasoningBudgetRule,
 	routedGlmReasoningRule,
 	togetherReasoningToggleRule,
 ];

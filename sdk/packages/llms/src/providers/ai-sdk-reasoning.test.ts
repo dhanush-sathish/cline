@@ -6,6 +6,7 @@ import type {
 import { describe, expect, it } from "vitest";
 import { buildAiSdkStreamConfig } from "./ai-sdk";
 import {
+	reconcilePortableReasoning,
 	resolvePortableReasoning,
 	withoutPortableReasoning,
 } from "./routing/portable-reasoning";
@@ -57,6 +58,61 @@ describe("resolvePortableReasoning", () => {
 			providerId: "custom-provider",
 		});
 		expect(normalized.reasoning).toEqual({ enabled: false });
+	});
+
+	it("disables reasoning on providers without a native toggle", () => {
+		expect(
+			resolvePortableReasoning({
+				...request({ enabled: false }),
+				providerId: "nvidia",
+			}),
+		).toBe("none");
+	});
+
+	it("leaves a disable alone for providers that own reasoning natively", () => {
+		expect(
+			resolvePortableReasoning({
+				...request({ enabled: false }),
+				providerId: "mistral",
+			}),
+		).toBeUndefined();
+	});
+
+	it("skips the disable for a model known not to reason", () => {
+		const context = {
+			model: { id: "llama", capabilities: ["text"] },
+		} as unknown as GatewayProviderContext;
+		expect(
+			resolvePortableReasoning(
+				{ ...request({ enabled: false }), providerId: "nvidia" },
+				{ context },
+			),
+		).toBeUndefined();
+	});
+
+	it("keeps a disable for native provider rules", () => {
+		const disable = { ...request({ enabled: false }), providerId: "zai" };
+		expect(withoutPortableReasoning(disable).reasoning).toEqual({
+			enabled: false,
+		});
+	});
+
+	it("defers a disable to a native provider control", () => {
+		expect(
+			reconcilePortableReasoning("none", {
+				zai: { thinking: { type: "disabled" } },
+			}),
+		).toBeUndefined();
+		expect(
+			reconcilePortableReasoning("none", {
+				nvidia: { strictJsonSchema: false },
+			}),
+		).toBe("none");
+		expect(
+			reconcilePortableReasoning("high", {
+				zai: { thinking: { type: "enabled" } },
+			}),
+		).toBe("high");
 	});
 
 	it("omits reasoning when the caller has no explicit intent", () => {
